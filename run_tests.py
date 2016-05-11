@@ -1,8 +1,11 @@
+from junit_xml import TestSuite, TestCase
+from collections import OrderedDict
 from glob import glob
 from os import path
 import subprocess
-from collections import OrderedDict
-from junit_xml import TestSuite, TestCase
+import os
+
+failed = 0
 
 file_list = glob('build/x86-linux-native/test/*-test-*')
 
@@ -38,11 +41,24 @@ for fn in file_list:
             tc = TestCase(test_id, test_name, stdout=test_stdout)
             if not success and fail:
                 tc.add_failure_info('', 'failed')
+                failed = 1
             test_cases.append(tc)
 
         ts = TestSuite(path.basename(fn), test_cases)
         test_suites.append(ts)
 
 module_name = path.basename(file_list[0]).split('-test-')[0]
-with open(module_name+'_test_result_junit.xml', "w") as fd:
+try:
+    reports_dir = os.environ['CIRCLE_TEST_REPORTS']
+except KeyError:
+    reports_dir = ''
+
+if reports_dir != '' and not os.path.exists(reports_dir):
+    os.makedirs(reports_dir)
+report_fn = path.join(reports_dir, module_name+'_test_result_junit.xml')
+
+with open(report_fn, "w") as fd:
     TestSuite.to_file(fd, test_suites)
+
+if failed:
+    exit(1)
