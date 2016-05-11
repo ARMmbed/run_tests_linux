@@ -13,7 +13,11 @@ test_suites = []
 print file_list
 for fn in file_list:
     if path.isfile(fn):
-        result = subprocess.check_output([fn])
+        try:
+            result = subprocess.check_output([fn], stderr=subprocess.STDOUT)
+        except Exception, e:
+            failed = 1
+            result = str(e.output)
         print result
         bits = result.split(">>>")
 
