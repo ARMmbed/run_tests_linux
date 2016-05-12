@@ -19,34 +19,30 @@ for fn in file_list:
             failed = 1
             result = str(e.output)
         print result
-        bits = result.split(">>>")
-
-        bits.pop(0) # empty
-
-        summary = bits.pop(-1)
-
-        testcase_output = bits[::2]
-        testcase_summary = bits[1::2]
 
         test_cases = []
-        assert(len(testcase_output) == len(testcase_summary))
-        for i, op in enumerate(testcase_output):
-            ops = op.strip().split('...')
-            metadata = ops[0].split(' ')
-
-            test_id = int(metadata[2][1:-1])
-            test_name = metadata[-1].strip('\'')
-            test_stdout = ops[1]
-
-            ts = testcase_summary[i].strip()
-            success = int(ts.split(' ')[-4])
-            fail = int(ts.split(' ')[-2])
-
-            tc = TestCase(test_id, test_name, stdout=test_stdout)
-            if not success and fail:
-                tc.add_failure_info('', 'failed')
-                failed = 1
-            test_cases.append(tc)
+        test_id = 0
+        tc = None
+        for line in result.split("\n"):
+            # print line
+            if line.startswith("{{"):
+                line = line.strip("\{\}")
+                line = line.split(';')
+                if line[0] == "__testcase_start":
+                    test_name = line[1]
+                    tc = TestCase(test_id, test_name, stdout='')
+                    test_id += 1
+                elif line[0] == "__testcase_finish":
+                    success = int(line[2])
+                    fail = int(line[3])
+                    if fail:
+                        tc.add_failure_info('', 'failed')
+                    test_cases.append(tc)
+                    tc = None
+                elif line[0] == "__testcase_summary":
+                    break
+            elif tc is not None:
+                tc.stdout += line + "\n"
 
         ts = TestSuite(path.basename(fn), test_cases)
         test_suites.append(ts)
