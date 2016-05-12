@@ -36,7 +36,7 @@ for fn in file_list:
                     success = int(line[2])
                     fail = int(line[3])
                     if fail:
-                        tc.add_failure_info('', 'failed')
+                        tc.add_failure_info('failed', tc.stdout)
                     test_cases.append(tc)
                     tc = None
                 elif line[0] == "__testcase_summary":
