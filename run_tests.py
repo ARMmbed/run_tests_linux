@@ -7,7 +7,8 @@ import os
 
 failed = 0
 
-file_list = glob('build/x86-linux-native/test/*-test-*')
+target = subprocess.check_output(["yt", "target"]).split("\n")[0].split(' ')[0]
+file_list = glob('build/' + target + '/test/*-test-*')
 
 test_suites = []
 print file_list
