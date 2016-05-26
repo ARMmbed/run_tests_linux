@@ -87,7 +87,7 @@ def add_coverate_details(build,coverage_file, module_name):
     build.coverage_statements = total_lines
     build.coverage_missing = total_lines - lines_covered
     build.coverage_excluded = 0
-    build.coverage_coverage = int(percentage_coverage)
+    build.coverage_coverage = percentage_coverage
 
 if __name__ == "__main__":
     if not Build.exists():
