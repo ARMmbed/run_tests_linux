@@ -4,22 +4,46 @@ from glob import glob
 from os import path
 import subprocess
 import os
+import argparse
+import json
+from run_test_raas import run_test_raas
 
 failed = 0
 
-target = subprocess.check_output(["yt", "target"]).split("\n")[0].split(' ')[0]
-file_list = glob('build/' + target + '/test/*-test-*')
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--target",
+    type=str, default="LINUX", help="The target platform")
+args = parser.parse_args()
+
+file_list = []
+if args.target == "LINUX":
+    target = subprocess.check_output(["yt", "target"]).split("\n")[0].split(' ')[0]
+    file_list = glob('build/' + target + '/test/*-test-*')
+elif args.target == "K64F":
+    with open("test_spec.json", "r") as fd:
+        parsed_json = json.load(fd)
+        for _, test_bins in parsed_json["builds"]["K64F-GCC_ARM"]["tests"].iteritems():
+            for test_bin in test_bins["binaries"]:
+                test_bin_path = test_bin['path']
+                if "/mbed-os/" not in test_bin_path:
+                    file_list.append(test_bin_path)
+else:
+    print "Unsupported target", args.target
+    exit(1)
 
 test_suites = []
 print file_list
 for fn in file_list:
     if path.isfile(fn):
-        try:
-            result = subprocess.check_output([fn], stderr=subprocess.STDOUT)
-        except Exception, e:
-            failed = 1
-            result = str(e.output)
-        print result
+        if args.target == "LINUX":
+            try:
+                result = subprocess.check_output([fn], stderr=subprocess.STDOUT)
+            except Exception, e:
+                failed = 1
+                result = str(e.output)
+            print result
+        elif args.target == "K64F":
+            result = run_test_raas(fn, args.target)
 
         test_cases = []
         test_id = 0
@@ -27,7 +51,7 @@ for fn in file_list:
         for line in result.split("\n"):
             # print line
             if line.startswith("{{"):
-                line = line.strip("\{\}")
+                line = line.strip("\{\}\r")
                 line = line.split(';')
                 if line[0] == "__testcase_start":
                     test_name = line[1]
