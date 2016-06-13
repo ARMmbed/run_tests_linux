@@ -68,6 +68,7 @@ for fn in file_list:
                     success = int(line[2])
                     fail = int(line[3])
                     if fail:
+                        failed = 1
                         tc.add_failure_info('failed', tc.stdout)
                     test_cases.append(tc)
                     tc = None
@@ -96,5 +97,4 @@ report_fn = path.join(reports_dir, module_name+'_test_result_junit.xml')
 with open(report_fn, "w") as fd:
     TestSuite.to_file(fd, test_suites)
 
-if failed:
-    exit(1)
+exit(failed)
