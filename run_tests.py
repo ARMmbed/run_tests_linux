@@ -6,7 +6,6 @@ import subprocess
 import os
 import argparse
 import json
-from run_test_raas import run_test_raas
 
 failed = 0
 
@@ -14,6 +13,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--target",
     type=str, default="LINUX", help="The target platform")
 args = parser.parse_args()
+
+if args.target != "LINUX":
+    from run_test_raas import run_test_raas
 
 file_list = []
 if args.target == "LINUX":
