@@ -22,7 +22,12 @@ if args.target == "LINUX":
     target = subprocess.check_output(["yt", "target"]).split("\n")[0].split(' ')[0]
     file_list = glob('build/' + target + '/test/*-test-*')
 elif args.target == "K64F":
-    with open("test_spec.json", "r") as fd:
+
+    test_spec_fn = "test_spec.json"
+    if not path.isfile(test_spec_fn):
+        test_spec_fn = path.join(".build", "tests", "K64F", "GCC_ARM", "test_spec.json")
+
+    with open(test_spec_fn, "r") as fd:
         parsed_json = json.load(fd)
         for _, test_bins in parsed_json["builds"]["K64F-GCC_ARM"]["tests"].iteritems():
             for test_bin in test_bins["binaries"]:
@@ -74,7 +79,11 @@ for fn in file_list:
         ts = TestSuite(path.basename(fn), test_cases)
         test_suites.append(ts)
 
-module_name = path.basename(file_list[0]).split('-test-')[0]
+if args.target == "LINUX":
+    module_name = path.basename(file_list[0]).split('-test-')[0]
+elif args.target == "K64F":
+    module_name = path.basename(file_list[0]).split('-TESTS-')[0]
+
 try:
     reports_dir = os.environ['CIRCLE_TEST_REPORTS']
 except KeyError:
