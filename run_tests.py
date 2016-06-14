@@ -80,10 +80,11 @@ for fn in file_list:
         ts = TestSuite(path.basename(fn), test_cases)
         test_suites.append(ts)
 
+deduced_module_name = ''
 if args.target == "LINUX":
     deduced_module_name = path.basename(file_list[0]).split('-test-')[0]
 elif args.target == "K64F":
-    module_name = path.basename(file_list[0]).split('-TESTS-')[0]
+    deduced_module_name = path.basename(file_list[0]).split('-TESTS-')[0]
 
 module_name = os.getenv("CIRCLE_PROJECT_REPONAME", deduced_module_name)
 reports_dir = os.getenv('CIRCLE_TEST_REPORTS', '')

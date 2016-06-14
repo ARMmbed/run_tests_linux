@@ -82,12 +82,12 @@ def add_coverate_details(build,coverage_file, module_name):
 
             percentage_coverage = float(coverVal.text.encode('utf-8').strip("\xc2\xa0%"))
             lines_covered, total_lines = [int(x) for x in coverLine.text.split("/")]
-            break
 
-    build.coverage_statements = total_lines
-    build.coverage_missing = total_lines - lines_covered
-    build.coverage_excluded = 0
-    build.coverage_coverage = percentage_coverage
+            build.coverage_statements = total_lines
+            build.coverage_missing = total_lines - lines_covered
+            build.coverage_excluded = 0
+            build.coverage_coverage = percentage_coverage
+            break
 
 if __name__ == "__main__":
     report_fn_suffix = "result_junit.xml"
@@ -106,8 +106,9 @@ if __name__ == "__main__":
         get_test_details(report, build)
         add_details(build)
 
-        target = report[:-len(report_fn_suffix)-1].split('_')[-1]
-        module_name = report[:-len(report_fn_suffix)-1].split('_')[0]
+        report_file_name = path.basename(report)
+        target = report_file_name[:-len(report_fn_suffix)-1].split('_')[-1]
+        module_name = report_file_name[:-len(report_fn_suffix)-1].split('_')[0]
         cov_html_fn = path.join(artifacts_dir, target, 'html', 'index.html')
         if path.isfile(cov_html_fn):
             add_coverate_details(build, cov_html_fn, module_name)
