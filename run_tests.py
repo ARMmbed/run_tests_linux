@@ -40,6 +40,9 @@ else:
 
 test_suites = []
 print file_list
+if len(file_list) == 0:
+    exit(0)
+
 for fn in file_list:
     if path.isfile(fn):
         if args.target == "LINUX":
