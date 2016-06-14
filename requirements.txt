@@ -1,0 +1,3 @@
+junit_xml
+bs4
+pynamodb
