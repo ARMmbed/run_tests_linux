@@ -81,18 +81,18 @@ for fn in file_list:
         test_suites.append(ts)
 
 if args.target == "LINUX":
-    module_name = path.basename(file_list[0]).split('-test-')[0]
+    deduced_module_name = path.basename(file_list[0]).split('-test-')[0]
 elif args.target == "K64F":
     module_name = path.basename(file_list[0]).split('-TESTS-')[0]
 
-try:
-    reports_dir = os.environ['CIRCLE_TEST_REPORTS']
-except KeyError:
-    reports_dir = ''
+module_name = os.getenv("CIRCLE_PROJECT_REPONAME", deduced_module_name)
+reports_dir = os.getenv('CIRCLE_TEST_REPORTS', '')
 
 if reports_dir != '' and not os.path.exists(reports_dir):
     os.makedirs(reports_dir)
-report_fn = path.join(reports_dir, module_name+'_test_result_junit.xml')
+
+report_fn_suffix = "result_junit.xml"
+report_fn = path.join(reports_dir, '{}_{}_{}'.format(module_name, args.target, report_fn_suffix))
 
 with open(report_fn, "w") as fd:
     TestSuite.to_file(fd, test_suites)

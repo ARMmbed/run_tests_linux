@@ -90,26 +90,27 @@ def add_coverate_details(build,coverage_file, module_name):
     build.coverage_coverage = percentage_coverage
 
 if __name__ == "__main__":
+    report_fn_suffix = "result_junit.xml"
+
     if not Build.exists():
         Build.create_table(wait=True)
 
-    target = subprocess.check_output(["yt", "target"]).split("\n")[0].split(' ')[0]
-    file_list = glob('build/' + target + '/test/*-test-*')
-    module_name = path.basename(file_list[0]).split('-test-')[0]
-
-    build = Build()
-    build.sub_module = module_name
-
     reports_dir = os.getenv('CIRCLE_TEST_REPORTS', '')
-
-    if reports_dir != '' and not os.path.exists(reports_dir):
-        os.makedirs(reports_dir)
-    report_fn = path.join(reports_dir, module_name+'_test_result_junit.xml')
-
+    reports = glob(path.join(reports_dir, "*"+report_fn_suffix))
     artifacts_dir = os.getenv('CIRCLE_ARTIFACTS', '')
 
-    get_test_details(report_fn, build)
-    add_details(build)
-    add_coverate_details(build, os.path.join(artifacts_dir, 'html','index.html'), module_name)
+    for report in reports:
+        build = Build()
+        build.sub_module = path.basename(report[:-len(report_fn_suffix)-1])
+        print report
+        get_test_details(report, build)
+        add_details(build)
 
-    build.save()
+        target = report[:-len(report_fn_suffix)-1].split('_')[-1]
+        module_name = report[:-len(report_fn_suffix)-1].split('_')[0]
+        cov_html_fn = path.join(artifacts_dir, target, 'html', 'index.html')
+        if path.isfile(cov_html_fn):
+            add_coverate_details(build, cov_html_fn, module_name)
+
+        if reports_dir != '':
+            build.save()
