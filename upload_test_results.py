@@ -66,7 +66,15 @@ def add_details(build):
 
     build.key = key
 
-def add_coverate_details(build,coverage_file, module_name):
+def add_coverate_details(build, coverage_file, module_name):
+    build.coverage_statements = 0
+    build.coverage_missing    = 0
+    build.coverage_excluded   = 0
+    build.coverage_coverage   = 0
+
+    if not path.isfile(cov_html_fn):
+        return
+
     print coverage_file
     with open(coverage_file, "r") as f:
         html_content = f.read()
@@ -110,8 +118,7 @@ if __name__ == "__main__":
         target = report_file_name[:-len(report_fn_suffix)-1].split('_')[-1]
         module_name = report_file_name[:-len(report_fn_suffix)-1].split('_')[0]
         cov_html_fn = path.join(artifacts_dir, target, 'html', 'index.html')
-        if path.isfile(cov_html_fn):
-            add_coverate_details(build, cov_html_fn, module_name)
+        add_coverate_details(build, cov_html_fn, module_name)
 
         if reports_dir != '':
             build.save()
