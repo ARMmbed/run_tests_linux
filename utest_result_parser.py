@@ -1,6 +1,11 @@
 from junit_xml import TestSuite, TestCase
+import re
 
 def parse_result(result):
+    # find start of tests
+    m = re.search("Running [0-9]* test cases...", result)
+    result = result[m.end():]
+
     test_cases = []
     test_id = 0
     tc = None
@@ -13,7 +18,6 @@ def parse_result(result):
                 if line[0] == "__testcase_start":
                     test_name = line[1]
                     if tc != None:
-                        failed = 1
                         tc.add_failure_info('failed', tc.stdout)
                         test_cases.append(tc)
                     tc = TestCase(test_id, test_name, stdout='')
@@ -22,14 +26,12 @@ def parse_result(result):
                     success = int(line[2])
                     fail = int(line[3])
                     if fail and tc:
-                        failed = 1
                         tc.add_failure_info('failed', tc.stdout)
                     if tc != None:
                         test_cases.append(tc)
                         tc = None
                 elif line[0] == "__testcase_summary":
                     if tc != None:
-                        failed = 1
                         tc.add_failure_info('failed', tc.stdout)
                         test_cases.append(tc)
                     break
@@ -42,13 +44,11 @@ def parse_result(result):
                 line = line.strip(">.\r ")
                 if "Test cases:" in line:
                     if tc != None:
-                        failed = 1
                         tc.add_failure_info('failed', tc.stdout)
                         test_cases.append(tc)
                     break
                 elif line.startswith("Running case"):
                     if tc != None:
-                        failed = 1
                         tc.add_failure_info('failed', tc.stdout)
                         test_cases.append(tc)
                     test_name = line.split(" ")[-1].strip('\'')
@@ -59,7 +59,6 @@ def parse_result(result):
                     success = int(bits[-4])
                     fail = int(bits[-2])
                     if fail and tc:
-                        failed = 1
                         tc.add_failure_info('failed', tc.stdout)
                     if tc != None:
                         test_cases.append(tc)
@@ -71,6 +70,9 @@ def parse_result(result):
 if __name__ == '__main__':
     result = \
     """
+    >>> Running case #1: 'whatwhat'...
+    >>> 'whatwhat': 1 passed, 0 failed
+
     >>> Running 4 test cases...
 
     >>> Running case #1: 'manifest'...

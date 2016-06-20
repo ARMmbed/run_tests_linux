@@ -60,8 +60,14 @@ for fn in file_list:
 
         test_cases = parse_result(result)
         if len(test_cases) > 0:
+            for tc in test_cases:
+                if tc.is_failure():
+                    failed = 1
+                    break
             ts = TestSuite(path.basename(fn), test_cases)
             test_suites.append(ts)
+        else:
+            failed == 1
 
 deduced_module_name = ''
 if args.target == "LINUX":
