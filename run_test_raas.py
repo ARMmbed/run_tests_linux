@@ -26,7 +26,7 @@ def run_test_raas(binary, platform_name="K64F"):
         print "starting serial capture"
         serial_out = ""
         while(data != ""):
-            data = k64f.readline(timeout=10)
+            data = k64f.readline(timeout=15)
             serial_out += data
             print "[DATA]", data.strip()
 

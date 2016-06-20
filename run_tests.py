@@ -6,6 +6,7 @@ import subprocess
 import os
 import argparse
 import json
+from utest_result_parser import parse_result
 
 failed = 0
 
@@ -40,7 +41,9 @@ else:
 
 test_suites = []
 print file_list
+
 if len(file_list) == 0:
+    print "no tests to be run"
     exit(0)
 
 for fn in file_list:
@@ -55,39 +58,20 @@ for fn in file_list:
         elif args.target == "K64F":
             result = run_test_raas(fn, args.target)
 
-        test_cases = []
-        test_id = 0
-        tc = None
-        for line in result.split("\n"):
-            # print line
-            if line.startswith("{{"):
-                line = line.strip("\{\}\r")
-                line = line.split(';')
-                if line[0] == "__testcase_start":
-                    test_name = line[1]
-                    tc = TestCase(test_id, test_name, stdout='')
-                    test_id += 1
-                elif line[0] == "__testcase_finish":
-                    success = int(line[2])
-                    fail = int(line[3])
-                    if fail:
-                        failed = 1
-                        tc.add_failure_info('failed', tc.stdout)
-                    test_cases.append(tc)
-                    tc = None
-                elif line[0] == "__testcase_summary":
-                    break
-            elif tc is not None:
-                tc.stdout += line + "\n"
-
-        ts = TestSuite(path.basename(fn), test_cases)
-        test_suites.append(ts)
+        test_cases = parse_result(result)
+        if len(test_cases) > 0:
+            ts = TestSuite(path.basename(fn), test_cases)
+            test_suites.append(ts)
 
 deduced_module_name = ''
 if args.target == "LINUX":
     deduced_module_name = path.basename(file_list[0]).split('-test-')[0]
 elif args.target == "K64F":
-    deduced_module_name = path.basename(file_list[0]).split('-TESTS-')[0]
+    try:
+        op = subprocess.check_output(["git", "remote", "-v"])
+        deduced_module_name = op.split(" ")[1].split('/')[-1].split('.')[0]
+    except:
+        deduced_module_name = path.basename(file_list[0]).lower().split('-tests-')[0]
 
 module_name = os.getenv("CIRCLE_PROJECT_REPONAME", deduced_module_name)
 reports_dir = os.getenv('CIRCLE_TEST_REPORTS', '')
@@ -98,7 +82,8 @@ if reports_dir != '' and not os.path.exists(reports_dir):
 report_fn_suffix = "result_junit.xml"
 report_fn = path.join(reports_dir, '{}_{}_{}'.format(module_name, args.target, report_fn_suffix))
 
-with open(report_fn, "w") as fd:
-    TestSuite.to_file(fd, test_suites)
+if len(test_suites) > 0:
+    with open(report_fn, "w") as fd:
+        TestSuite.to_file(fd, test_suites)
 
 exit(failed)
