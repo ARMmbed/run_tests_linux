@@ -24,8 +24,9 @@ def parse_result(result):
                     if fail and tc:
                         failed = 1
                         tc.add_failure_info('failed', tc.stdout)
-                    test_cases.append(tc)
-                    tc = None
+                    if tc != None:
+                        test_cases.append(tc)
+                        tc = None
                 elif line[0] == "__testcase_summary":
                     if tc != None:
                         failed = 1
@@ -60,8 +61,9 @@ def parse_result(result):
                     if fail and tc:
                         failed = 1
                         tc.add_failure_info('failed', tc.stdout)
-                    test_cases.append(tc)
-                    tc = None
+                    if tc != None:
+                        test_cases.append(tc)
+                        tc = None
             elif tc is not None:
                 tc.stdout += line + "\n"
     return test_cases
