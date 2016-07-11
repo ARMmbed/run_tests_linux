@@ -4,7 +4,9 @@ import re
 def parse_result(result):
     # find start of tests
     m = re.search("Running [0-9]* test cases...", result)
-    result = result[m.end():]
+
+    if m is not None:
+        result = result[m.end():]
 
     test_cases = []
     test_id = 0
