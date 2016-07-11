@@ -4,7 +4,7 @@ def run_test_raas(binary, platform_name="K64F"):
     print "Running", binary
     print "On", platform_name
 
-    client = raas_client.RaasClient(host="193.208.80.31", port=8007)
+    client = raas_client.RaasClient(host="193.208.80.31", port=8000)
 
     try:
         k64f = client.allocate({"platform_name": [platform_name]})
