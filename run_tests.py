@@ -22,6 +22,7 @@ file_list = []
 if args.target == "LINUX":
     target = subprocess.check_output(["yt", "target"]).split("\n")[0].split(' ')[0]
     file_list = glob('build/' + target + '/test/*-test-*')
+    file_list = [x for x in file_list if not x.endswith('.map')]
 elif args.target == "K64F":
 
     test_spec_fn = "test_spec.json"
@@ -51,9 +52,9 @@ for fn in file_list:
         if args.target == "LINUX":
             try:
                 result = subprocess.check_output([fn], stderr=subprocess.STDOUT)
-            except Exception, e:
+            except Exception as e:
                 failed = 1
-                result = str(e.output)
+                result = str(e)
             print result
         elif args.target == "K64F":
             result = run_test_raas(fn, args.target)
